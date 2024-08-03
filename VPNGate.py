@@ -4,6 +4,8 @@ import pyautogui
 import win32gui
 from pywinauto.application import Application
 
+import warnings
+warnings.simplefilter('ignore', category=UserWarning)
 
 
 class FunctionExecution:
@@ -152,7 +154,8 @@ def main(categories="J,K"):
         hwnd = win32gui.FindWindow(None, TITLE)
         main_app = pywinauto.Application().connect(handle=hwnd)
 
-        list_view = dlg.child_window(class_name="SysListView32", control_id=1047)
+        list_view = dlg.child_window(
+            class_name="SysListView32", control_id=1047)
         execution.execute_and_store(double_click_cell, list_view, 1)
 
         print("正在准备连接新的vpn")
@@ -166,7 +169,8 @@ def main(categories="J,K"):
             [convert_runtime_to_hours(get_data(list_view2, i, 3)), convert_speed_to_float(get_data(list_view2, i, 5)),
              convert_country_to_id(get_data(list_view2, i, 2)), i] for i in range(0, list_view2.item_count())]
 
-        filtered_data = [item for item in runtime_speed_country_id if item[2] in categories]
+        filtered_data = [
+            item for item in runtime_speed_country_id if item[2] in categories]
 
         sorted_data = sorted(filtered_data, key=lambda x: (x[0] - x[1] / 40))
         # print(sorted_data)
@@ -178,7 +182,8 @@ def main(categories="J,K"):
             print(len(sorted_data))
             print(sorted_data[row_count])
             exit()
-        execution.execute_and_store(double_click_cell, list_view2, row_to_click)
+        execution.execute_and_store(
+            double_click_cell, list_view2, row_to_click)
         row_count += 1
         if row_count == 16 or row_count == 19 \
                 or row_count == 16 or row_count == 16:
@@ -204,22 +209,45 @@ def main(categories="J,K"):
 
             print("连接结果出现")
             if wait_for_either_window(ERROR, SUCCESS):
-
                 now_dlg = get_dlg(title=ERROR)
                 execution.execute_and_store(click_button, CANCEL, now_dlg)
+                # 重新打开插件列表
+                dlg = get_dlg(title=TITLE)
+                hwnd = win32gui.FindWindow(None, TITLE)
+                main_app = pywinauto.Application().connect(handle=hwnd)
+
+                list_view = dlg.child_window(
+                    class_name="SysListView32", control_id=1047)
+                execution.execute_and_store(double_click_cell, list_view, 1)
+
                 print("更换vpn中")
                 wait_for_window(TITLE)
             else:
 
                 print("连接成功！连接国家：{}，连接速度：{}，位置：{}".format(sorted_data[row_count][2],
-                                                                        sorted_data[row_count][1], row_count))
+                                                          sorted_data[row_count][1], row_count))
                 now_hwnd = wait_for_window(SUCCESS)
                 now_dlg = get_dlg(hwnd=now_hwnd)
 
                 click_button(BUTTON2, now_dlg)
-                main_app.kill()
+                
+                if wait_for_either_window(ERROR, SUCCESS):
+                    now_dlg = get_dlg(title=ERROR)
+                    execution.execute_and_store(click_button, CANCEL, now_dlg)
+                    # 重新打开插件列表
+                    dlg = get_dlg(title=TITLE)
+                    hwnd = win32gui.FindWindow(None, TITLE)
+                    main_app = pywinauto.Application().connect(handle=hwnd)
+
+                    list_view = dlg.child_window(
+                        class_name="SysListView32", control_id=1047)
+                    execution.execute_and_store(double_click_cell, list_view, 1)
+
+                    print("更换vpn中")
+                    wait_for_window(TITLE)
+                # main_app.kill()
                 exit()
 
 
 if __name__ == "__main__":
-    main("J")
+    main("J,K,T,I,C,V,P")
